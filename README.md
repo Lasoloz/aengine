@@ -1,5 +1,5 @@
 # aengine
-A game engine written in assembly for gfx library
+A game and its engine written in assembly for gfx library
 
 # Why I write this in assembly?
 Because it's a project at my University.
