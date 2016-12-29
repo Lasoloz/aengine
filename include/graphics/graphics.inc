@@ -10,6 +10,6 @@
 ;   - Clear texture
 ; - Copy (Draw) texture to screen
 ;
-; Depends on:
+; Dependencies:
 ;   graphics/texture.inc  math/vecint.inc
 ;

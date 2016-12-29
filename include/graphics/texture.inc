@@ -5,6 +5,6 @@
 ; - Create texture segment
 ; - Delete texture
 ;
-; Depends on:
+; Dependencies:
 ;   math/vecint.inc
 ;
