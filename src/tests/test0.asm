@@ -116,11 +116,69 @@ test_arithmetics:
 
 main:
     ; Main function
-        call    test_alloc
-        call    io_writeln
+        ; call    test_alloc
+        ; call    io_writeln
 
-        call    test_arithmetics
-        call    io_writeln
+        ; call    test_arithmetics
+        ; call    io_writeln
+
+        xor     eax, eax
+        or      eax, 1010b
+
+        test    eax, 2
+        jnz     .f1
+        jz      .f2
+        jmp     .wtf
+
+    .f1:
+        mov     eax, 'a'
+        call    mio_writechar
+        jmp     .exit
+    
+    .f2:
+        mov     eax, 'b'
+        call    mio_writechar
+        jmp     .exit
+
+    .wtf:
+        mov     eax, 'w'
+        call    mio_writechar
+
+        ; mov     eax, 0xF000000F
+        ; movd    xmm0, eax
+
+        ; xor     eax, eax
+
+        ; shufps  xmm0, xmm0, 10010000b
+
+        ; movd    eax, xmm0
+
+        ; call    io_writehex
+        ; call    io_writeln
+
+        ; xor     eax, eax
+        ; xor     ebx, ebx
+        ; xor     ecx, ecx
+        ; xor     edx, edx
+
+        ; mov     eax, 26
+        ; mov     ecx, 3
+        ; cdq
+        ; idiv    ecx, edx
+
+        ; call    io_writeint
+        ; call    io_writeln
+        ; mov     eax, ebx
+        ; call    io_writeint
+        ; call    io_writeln
+        ; mov     eax, ecx
+        ; call    io_writeint
+        ; call    io_writeln
+        ; mov     eax, edx
+        ; call    io_writeint
+        ; call    io_writeln
+
+    .exit:
 
         ret
 

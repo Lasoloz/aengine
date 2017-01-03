@@ -140,26 +140,113 @@ add_y_vec2int32:
 
 
 neg_vec2int32:
+    ; Negate the vector components
+        push    ebx
+
+        ; Negate x component
+        mov     ebx, [eax]
+        neg     ebx
+        mov     [eax], ebx
+
+        ; Negate y component
+        mov     ebx, [eax+4]
+        neg     ebx
+        mov     [eax+4], ebx
+
+        ; Restore register
+        pop     ebx
+
         ret
 
 
 sub_vec2int32:
+    ; Subtract a vector from another
+        push    ebx
+
+        ; Subtract x component
+        mov     ebx, [eax]
+        sub     ebx, [edx]
+        mov     [eax], ebx
+
+        ; Subtract y component
+        mov     ebx, [eax+4]
+        sub     ebx, [edx+4]
+        mov     [eax+4], ebx
+
+        ; Restore ebx
+        pop     ebx
+
         ret
 
 
 mul_s_vec2int32:
+    ; Multiply a vector with a scalar
+        push    ebx
+
+        ; Multiply x component
+        mov     ebx, [eax]
+        imul    ebx, edx
+        mov     [eax], ebx
+
+        ; Multiply y component
+        mov     ebx, [eax+4]
+        imul    ebx, edx
+        mov     [eax+4], ebx
+
+        ; Restore ebx
+        pop     ebx
+        
         ret
 
 
 div_s_vec2int32:
+    ; Divide a vector with scalar
+        push    ebx
+        push    ecx
+        mov     ecx, edx
+        mov     ebx, eax
+
+        ; Divide x component
+        mov     eax, [ebx]
+        cdq
+        idiv    ecx
+        mov     [ebx], eax
+
+        ; Divide y component
+        mov     eax, [ebx+4]
+        cdq
+        idiv    ecx
+        mov     [ebx+4], eax
+
+        ; Restore everything
+        mov     eax, ebx
+        mov     edx, ecx
+        pop     ecx
+        pop     ebx
+
         ret
 
 
 cpy_vec2int32:
+    ; Copy vector
+        push    ebx
+        mov     ebx, [edx]
+        mov     [eax], ebx
+
+        mov     ebx, [edx+4]
+        mov     [eax+4], ebx
+
+        ; Restore register
+        pop     ebx
+
         ret
 
 
 c_v2int32_to_ps:
+    ; Convert integer type vector to floating point (SSE type) vector
+        push    ebx
+        mov     ebx, [eax]
+        pop     ebx
         ret
 
 
