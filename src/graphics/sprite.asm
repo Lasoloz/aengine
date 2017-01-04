@@ -1,13 +1,16 @@
 ;
-; Copyright (c) 2016 László Heim
+; Copyright (c) 2016-2017 László Heim
 ;
 ; Source file for image loading functions
 ;
 
 %include 'third-party/util.inc'    ; Memory allocation and file heandling
+%include 'third-party/io.inc'
+%include 'third-party/mio.inc'     ; Print memory contents
 
 global spr_create
 global spr_load_gimp_ppm
+global spr_dump_memory
 global spr_delete
 
 section .text
@@ -46,16 +49,11 @@ fio_read_char:
 
 read_until_eol:
     ; Read characters (and discard them) until end-of-file is found
-    ; eax - file handle
-    ; ebx - buffer
-    ; ecx=1 must be 1!
-    ; edx - must not be used!
     .read_loop:
-        call    fio_read
-        test    edx, edx
-        jz      .nomore
+        call    fio_read_char
+        jc      .nomore
 
-        cmp     byte [ebx], 10
+        cmp     edx, 10
         je      .eol
 
         jmp     .read_loop
@@ -233,8 +231,13 @@ spr_load_gimp_ppm:
         cmp     edx, 54
         jne     .format_error
 
+        ; Read unneccesary new line
+        call    fio_read_char
+        jc      .format_error
+
         ; Read comment
         call    read_until_eol
+        jc      .format_error
 
         ; Read width
         call    read_num
@@ -340,5 +343,88 @@ spr_load_gimp_ppm:
         ret
 
 
-section .bss:
+spr_dump_memory:
+    ; Print out memory content to the console:
+        push    eax
+        push    ebx
+        push    ecx
+        push    edx
+
+        xor     ebx, ebx
+        xor     ecx, ecx
+
+        mov     ebx, eax
+
+        mov     eax, size_msg
+        call    io_writestr
+        
+        xor     eax, eax
+        mov     ax, [ebx]
+        mov     ecx, eax
+        call    io_writeint
+
+        mov     al, ','
+        call    mio_writechar
+
+        mov     ax, [ebx+2]
+        call    io_writeint
+
+        call    io_writeln
+
+
+        imul    ecx, eax
+        imul    ecx, 3
+
+        add     ebx, 4
+
+        xor     edx, edx
+
+    .write_loop:
+        mov     al, '#'
+        call    mio_writechar
+        mov     eax, edx
+        call    io_writeint
+        xor     eax, eax
+        mov     al, ':'
+        call    mio_writechar
+        mov     al, ' '
+        call    mio_writechar
+        inc     edx
+
+        mov     al, [ebx]
+        call    io_writeint
+
+        mov     al, ' '
+        call    mio_writechar
+
+        inc     ebx
+        dec     ecx
+        mov     al, [ebx]
+        call    io_writeint
+
+        mov     al, ' '
+        call    mio_writechar
+        
+        inc     ebx
+        dec     ecx
+        mov     al, [ebx]
+        call    io_writeint
+        inc     ebx
+
+        call    io_writeln
+
+        loop    .write_loop
+
+        ; Restore registers
+        pop     edx
+        pop     ecx
+        pop     ebx
+        pop     eax
+
+        ret
+
+section .bss
     read_buffer resb 1
+
+section .data
+    size_msg db 'Size of image: ', 0

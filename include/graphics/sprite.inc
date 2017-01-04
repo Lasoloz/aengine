@@ -1,14 +1,14 @@
 ;
-; Copyright (c) 2016 László Heim
+; Copyright (c) 2016-2017 László Heim
 ;
 ; Header file for image loading functions
 ; - Create an image matrix
 ; - Destroy image matrix
 ; - Load image data from file
-; - Render image (copy to gfx framebuffer)
+; - Print out memory content
 ;
 ; Dependencies:
-;   third-party/util.inc
+;   third-party/util.inc  third-party/io.inc  third-party/mio.inc
 ;
 
 %ifndef __SPRITE_INC__
@@ -49,14 +49,11 @@ extern spr_load_gimp_ppm
 
 
 ;;;
-extern spr_render
-; Renders an image to a gfx framebuffer
+extern spr_dump_memory
+; Prints memory content to the console
 ;
 ; Parameters:
-; eax - Framebuffer address
-; ebx - Sprite address
-; ecx - x, y positions of the framebuffer (vecint)
-; edx - width, height of the framebuffer (vecint)
-; Nothing returned
+; eax - Pointer to sprite
+; No return value
 
 %endif
