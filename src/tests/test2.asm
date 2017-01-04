@@ -37,7 +37,7 @@ main:
     call    io_writestr
     call    io_writeln
 
-    mov     ecx, 1000 ; show 60 frames
+    ;mov     ecx, 1000 ; show 60 frames
 
     mov     eax, ppm_fname
     call    spr_load_gimp_ppm
@@ -67,7 +67,12 @@ main:
     call    render_clear
 
     mov     eax, edx
-    mov     ebx, 0x0010fff6 ; x=10h=16, y=fff6h=-10
+    ; mov     ebx, 0x0010fff6 ; x=10h=16, y=fff6h=-10
+    ; call    render_copyspr
+
+    mov     ebx, 0x00100020
+    call    render_copyspr
+    mov     ebx, 0x00160030
     call    render_copyspr
     
     ; call    gfx_map

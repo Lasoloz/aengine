@@ -3,12 +3,14 @@
 
 :: Step #0: Turn echo off and create directories for objects and binaries
 ::          Copy dynamic link libraries to binary output
+
 @echo off
 
 echo Checking pre-requisities...
 
 if not exist obj mkdir obj
-if not exist obj\graphics mkdir graphics
+if not exist obj\graphics mkdir obj\graphics
+if not exist obj\tests mkdir obj\tests
 
 if not exist bin mkdir bin
 
