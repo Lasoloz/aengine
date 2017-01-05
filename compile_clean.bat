@@ -1,7 +1,7 @@
-:: Copyright (c) 2016 Heim László
+:: Copyright (c) 2016-2017 Heim László
 :: Delete all untracked files, and clean up working directory
 
 @echo off
 
-rmdir /q /s bin
-rmdir /q /s obj
+if exist bin rmdir /q /s bin
+if exist obj rmdir /q /s obj

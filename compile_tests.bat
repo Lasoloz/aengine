@@ -1,4 +1,4 @@
-:: Copyright (c) 2016 Heim László
+:: Copyright (c) 2016-2017 Heim László
 :: Compile and link tests with one command
 
 :: Step #0: Turn echo off and create directories for objects and binaries
@@ -18,6 +18,11 @@ if not exist bin\mio.dll copy third-party\mio.dll bin\mio.dll
 if not exist bin\util.dll copy third-party\util.dll bin\util.dll
 if not exist bin\gfx.dll copy third-party\gfx.dll bin\gfx.dll
 if not exist bin\test.ppm copy third-party\test.ppm bin\test.ppm
+if not exist bin\test1.ppm copy third-party\test1.ppm bin\test1.ppm
+if not exist bin\test2.ppm copy third-party\test2.ppm bin\test2.ppm
+if not exist bin\test3.ppm copy third-party\test3.ppm bin\test3.ppm
+if not exist bin\test4.ppm copy third-party\test4.ppm bin\test4.ppm
+if not exist bin\test5.ppm copy third-party\test5.ppm bin\test5.ppm
 
 
 :: Step #1: Compile components

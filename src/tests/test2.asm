@@ -50,6 +50,19 @@ main:
     call    io_writestr
     call    io_writeln
 
+
+    ; x position
+    mov     bx, -32
+
+    ; y position
+    mov     bx, -32
+
+    ; x move offset
+    mov     di, 5
+
+    ; y move offset
+    mov     si, 5
+
 .runloop:
     .eventloop:
         call    gfx_getevent
@@ -63,20 +76,73 @@ main:
         test    eax, eax
         jnz     .eventloop ; No more events in event queue
 
-    mov     eax, 0x00ffffff
+    ; Clear background with random grayscale color:
+    ; call    rand
+    ; push    bx
+    ; mov     bl, al
+    ; xor     eax, eax
+    ; or      al, bl
+    ; shl     eax, 8
+    ; or      al, bl
+    ; shl     eax, 8
+    ; or      al, bl
+    ; call    render_clear
+    ; pop     bx
+
+    ; Clear background with growing brightness on black color
+    xor     eax, eax
+    mov     al, [grayscale_level]
+    inc     al
+    mov     [grayscale_level], al
+    shl     eax, 8
+    mov     al, [grayscale_level]
+    shl     eax, 8
+    mov     al, [grayscale_level]
     call    render_clear
 
-    mov     eax, edx
-    ; mov     ebx, 0x0010fff6 ; x=10h=16, y=fff6h=-10
-    ; call    render_copyspr
 
-    mov     ebx, 0x00100020
+    ; Calculate new positions
+    add     bx, di
+    add     cx, si
+
+    ; Check right boundary
+    cmp     bx, 800
+    jl      .good_right
+    neg     di
+
+.good_right:
+    ; Check left boundary
+    cmp     bx, -32
+    jge     .good_left
+    neg     di
+
+.good_left:
+    ; Check down boundary
+    cmp     cx, 600
+    jl      .good_down
+    neg     si
+
+.good_down:
+    ; Check up boundary
+    cmp     cx, -32
+    jge     .good_up
+    neg     si
+
+.good_up:
+    ; Make position representation in ebx
+    push    bx
+    shl     ebx, 16
+    or      bx, cx
+
+    mov     eax, edx
     call    render_copyspr
-    mov     ebx, 0x00160030
-    call    render_copyspr
-    
-    ; call    gfx_map
+
+    pop     bx
+
     call    render_show
+
+    mov     eax, 33
+    call    sleep
 
     jmp     .runloop ; iterate
 
@@ -94,8 +160,10 @@ main:
 
 section .data
     win_title db 'test2', 0
-    ppm_fname db 'test.ppm', 0
+    ppm_fname db 'test3.ppm', 0
     msg_start db 'Testing sprites...',0
     msg_initwin db 'Initializing window...',0
     msg_success db 'Window initialized successfully!',0
     msg_imgsuccess db 'Image loaded successfully!', 0
+    
+    grayscale_level db 0

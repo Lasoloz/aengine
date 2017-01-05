@@ -130,7 +130,7 @@ read_num:
 
 ; Global functions:
 spr_create:
-    ; Create a texture map with width (eax heigher part) and height (eax lower
+    ; Create a texture map with width (eax higher part) and height (eax lower
     ; part)
         push    ebx
         ; Save width and height
@@ -159,6 +159,8 @@ spr_create:
         ; Calculate width * height * 3 + 4
         add     eax, 4
 
+        ; call    io_writeint
+
         ; Do memory allocation
         call    mem_alloc
 
@@ -168,7 +170,9 @@ spr_create:
 
         ; Everything went fine... let's save width and height
         pop     ebx
-        mov     [eax], ebx
+        mov     [eax+2], bx
+        shr     ebx, 16
+        mov     [eax], bx
 
 
         ; Restore register
@@ -276,7 +280,7 @@ spr_load_gimp_ppm:
         ; Start saving pixel data
         xchg    eax, edi
         push    edi
-        
+
         ; Write start position
         add     edi, 4
 

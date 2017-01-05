@@ -193,6 +193,7 @@ render_copyspr:
         push    ebx ; absolute framebuffer array pointer
 
         mov     eax, [buf_x]
+        mov     [buf_x_s], eax
         mov     dx, [buf_imx]
         .xloop:
             ; Check if x is out of bounds (frame)
@@ -218,33 +219,33 @@ render_copyspr:
             add     ebx, 3
 
             ; Pixel finished, let's check next Pixel
-            mov     eax, [buf_x]
+            mov     eax, [buf_x_s]
             inc     eax
-            mov     [buf_x], eax
+            mov     [buf_x_s], eax
             inc     dx
 
             jmp     .xloop
 
         .endx:
-            ; x loop finshed, get ready to update y loop
-            mov     eax, [buf_y]
-            inc     eax
-            mov     [buf_y], eax
-            inc     di
+        ; x loop finshed, get ready to update y loop
+        mov     eax, [buf_y]
+        inc     eax
+        mov     [buf_y], eax
+        inc     di
 
-            ; Advance to next line
-            pop     ebx
-            xor     ecx, ecx
-            mov     cx, [esi]
-            add     ebx, ecx     ; Next line = advance in array with width
-            add     ebx, ecx
-            add     ebx, ecx ; THIS TOO (See below... :p)
-            
-            pop     ecx
-            add     ecx, [width] ; Next line = advance in array with width
-            add     ecx, [width]
-            add     ecx, [width] ; AM I REALLY DOING THIS?? I have to find
-            add     ecx, [width] ; something better...
+        ; Advance to next line
+        pop     ebx
+        xor     ecx, ecx
+        mov     cx, [esi]
+        add     ebx, ecx     ; Next line = advance in array with width
+        add     ebx, ecx
+        add     ebx, ecx ; THIS TOO (See below... :p)
+        
+        pop     ecx
+        add     ecx, [width] ; Next line = advance in array with width
+        add     ecx, [width]
+        add     ecx, [width] ; AM I REALLY DOING THIS?? I have to find
+        add     ecx, [width] ; something better...
         
         jmp     .yloop
     .endy:
@@ -277,5 +278,6 @@ section .bss
     width    resd 1
     height   resd 1
     buf_x    resd 1
+    buf_x_s  resd 1
     buf_y    resd 1
     buf_imx  resw 1
