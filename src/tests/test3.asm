@@ -112,4 +112,4 @@ section .data
     msg_font_loaded db 'Minimum font number loaded successfully!', 0
     msg_font_notl   db 'Could not load at least one character from fontset!', 0
     msg_start db 'Starting main loop of application...', 0
-    msg_fontrender db 'Testing font rendering...', 13, 10, 'abcdefghijklmnopqrstuvwxy', 13, 10, '0123456789', 13, 10, 'Last line and z character',0
+    msg_fontrender db 'Testing font rendering', 13, 10, 'abcdefghijklmnopqrstuvwxy', 13, 10, '0123456789', 13, 10, 'Last line and z character',0

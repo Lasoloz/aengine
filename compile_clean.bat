@@ -5,3 +5,4 @@
 
 if exist bin rmdir /q /s bin
 if exist obj rmdir /q /s obj
+if exist game rmdir /q /s game

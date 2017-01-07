@@ -9,9 +9,10 @@
 *.out
 *.app
 
-# bin and obj library
+# bin and obj and game directories
 bin/*
 obj/*
+game/*
 
 # Allow tracking of start.obj
 !start.obj
