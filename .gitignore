@@ -12,3 +12,6 @@
 # bin and obj library
 bin/*
 obj/*
+
+# Allow tracking of start.obj
+!start.obj
