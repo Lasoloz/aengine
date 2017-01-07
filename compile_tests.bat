@@ -31,9 +31,12 @@ echo Compiling sources...
 
 nasm -f win32 src/graphics/sprite.asm -o obj/graphics/sprite.obj
 nasm -f win32 src/graphics/render.asm -o obj/graphics/render.obj
+nasm -f win32 src/graphics/fonts.asm -o obj/graphics/fonts.obj
+nasm -f win32 src/userutil.asm -o obj/userutil.obj
 
 nasm -f win32 src/tests/test1.asm -o obj/tests/test1.obj
 nasm -f win32 src/tests/test2.asm -o obj/tests/test2.obj
+nasm -f win32 src/tests/test3.asm -o obj/tests/test3.obj
 
 
 :: Step #2: Link tests
@@ -50,3 +53,11 @@ nlink obj/graphics/sprite.obj^
       obj/tests/test2.obj^
       -lthird-party/mio -lthird-party/io -lthird-party/util -lthird-party/gfx^
       -o bin/test2.exe
+
+nlink obj/tests/test3.obj^
+      obj/graphics/fonts.obj^
+      obj/userutil.obj^
+      obj/graphics/sprite.obj^
+      obj/graphics/render.obj^
+      -lthird-party/mio -lthird-party/io -lthird-party/util -lthird-party/gfx^
+      -o bin/test3.exe

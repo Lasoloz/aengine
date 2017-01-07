@@ -318,6 +318,9 @@ spr_load_gimp_ppm:
         pop     ecx
         loop    .column_loop
 
+        ; Close file
+        call    fio_close
+
         ; Pixels saved in sprite memory
         pop     eax ; pop sprite address to eax (pushed with edx)
 
@@ -328,9 +331,10 @@ spr_load_gimp_ppm:
         pop     edx
         pop     ebx
 
-        ret
+        ret     ;;; ret #1
 
     .format_error_inner:
+        call    fio_close
         pop     eax
         call    spr_delete ; Delete sprite
     .cantopen_error:
@@ -344,7 +348,7 @@ spr_load_gimp_ppm:
         pop     edx
         pop     ebx
 
-        ret
+        ret     ;;; ret #2
 
 
 spr_dump_memory:

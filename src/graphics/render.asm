@@ -5,7 +5,7 @@
 ;
 
 %include 'include/graphics/sprite.inc' ; For sprites
-%include 'third-party/gfx.inc' ; For rendering
+%include 'third-party/gfx.inc'         ; For rendering
 
 global render_createWindow
 global render_destroyWindow
