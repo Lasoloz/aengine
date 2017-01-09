@@ -11,6 +11,7 @@ echo Checking pre-requisities...
 if not exist obj mkdir obj
 if not exist obj\graphics mkdir obj\graphics
 if not exist obj\tests mkdir obj\tests
+if not exist obj\demo mkdir obj\demo
 
 if not exist game mkdir game
 
@@ -28,17 +29,30 @@ nasm -f win32 src/graphics/render.asm -o obj/graphics/render.obj
 nasm -f win32 src/graphics/fonts.asm -o obj/graphics/fonts.obj
 nasm -f win32 src/userutil.asm -o obj/userutil.obj
 
-nasm -f win32 src/demo/solitaire.asm -o obj/solitaire.obj
+nasm -f win32 src/demo/snake.asm -o obj/snake.obj
+
+::nasm -f win32 src/demo/cards.asm -o obj/demo/cards.obj
+
+::nasm -f win32 src/demo/solitaire.asm -o obj/solitaire.obj
 
 
 :: Step #2: Link tests
 :: nlink MUST be added to path variable!
 echo Linking tests...
 
-nlink obj/solitaire.obj^
+::nlink obj/solitaire.obj^
+::      obj/graphics/fonts.obj^
+::      obj/userutil.obj^
+::      obj/graphics/sprite.obj^
+::      obj/graphics/render.obj^
+::      obj/demo/cards.obj^
+::      -lthird-party/mio -lthird-party/io -lthird-party/util -lthird-party/gfx^
+::      -o game/solitaire.exe
+
+nlink obj/snake.obj^
       obj/graphics/fonts.obj^
       obj/userutil.obj^
       obj/graphics/sprite.obj^
       obj/graphics/render.obj^
       -lthird-party/mio -lthird-party/io -lthird-party/util -lthird-party/gfx^
-      -o game/solitaire.exe
+      -o game/snake.exe

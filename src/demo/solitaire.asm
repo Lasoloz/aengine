@@ -13,6 +13,7 @@
 %include 'include/graphics/render.inc' ; For rendering functions
 %include 'include/graphics/fonts.inc'  ; For text rendering
 %include 'include/graphics/sprite.inc' ; For image handling
+%include 'include/demo/cards.inc'      ; Card image caching
 
 global main
 
@@ -266,12 +267,91 @@ menuproc:
 
 
 
-
-
 gameproc:
+    ; Game state
+        push    eax
+        push    ebx
+        push    ecx
+
+        mov     eax, msg_enterGameState
+        call    io_writestr
+        call    io_writeln
+        ; NOW: Test card caching functions
+        
+        .render_test_loop:
+            .eventloop:
+                call    gfx_getevent
+
+                test    eax, eax
+                jz      .eventloopexit
+
+                cmp     eax, 23
+                je      .change_edx0
+
+                cmp     eax, 27
+                je      .change_edx1
+                jmp     .eventloop
+
+            .change_edx0:
+                mov     edx, -1
+                jmp     .eventloop
+
+            .change_edx1:
+                xor     edx, edx
+                jmp     .eventloop
+
+        .eventloopexit:
+            cmp     edx, 0
+            jle     .render_exit
+
+            mov     eax, 0x00ffffff
+            call    render_clear
+
+            mov     ecx, 52
+            mov     ebx, 0x00000010
+            xor     eax, eax
+
+            .card_render_loop:
+                call    card_renderCard
+
+                inc     eax
+                add     ebx, 0x000d0000
+
+                loop    .card_render_loop
+
+            ; Render card back too
+
+            mov     ebx, 0x000000d0
+            call    card_renderCardBack
+
+            call    render_show
+
+            jmp     .render_test_loop
+
+        .render_exit:
+        ; Exiting rendering
+
+        pop     ecx
+        pop     ebx
+        pop     eax
+
         ret
+
+
+
 scoreproc:
+    ; No score processing currently!
+        push    eax
+
+        mov     eax, msg_enterHScrState
+        call    io_writestr
+        call    io_writeln
+
+        pop     eax
+        
         ret
+
+
 
 main:
     ; Initialize fonts
@@ -291,7 +371,20 @@ main:
         call    io_writeln
 
         ; Initialize cards
-        ; TODO
+        mov     eax, msg_initCards
+        call    io_writestr
+        call    io_writeln
+
+        ; Set card path
+        mov     eax, cards_relative_path
+
+        call    card_loadCards
+        jc      .cards_error
+
+        ; Success
+        mov     eax, msg_initCsuccess
+        call    io_writestr
+        call    io_writeln
 
         ; Create window
         mov     eax, msg_createWin
@@ -301,7 +394,7 @@ main:
         ; Set up window properties
         mov     eax, [width]
         mov     ebx, [height]
-        mov     ecx, 0
+        mov     ecx, 1
         mov     edx, title
 
         call    render_createWindow
@@ -342,7 +435,6 @@ main:
         .gamestart:
             ; Start a game
             call    gameproc
-            xor     edx, edx ; Return to menu after game loop
             jmp     .stateloop
 
         .highscore:
@@ -371,6 +463,7 @@ main:
         call    io_writestr
         call    io_writeln
 
+        call    card_free
         call    font_free
 
         ; Game exit #1 - window error
@@ -424,8 +517,8 @@ section .data
     msg_exit db 'Exiting application...', 0
 
     ; Window data
-    width  dd 800
-    height dd 600
+    width  dd 1364
+    height dd 768
     title  db 'Solitaire clone by Heim Laszlo', 0
 
     ; Font data
