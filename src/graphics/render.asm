@@ -11,6 +11,7 @@ global render_createWindow
 global render_destroyWindow
 global render_clear
 global render_copyspr
+global render_renderRect
 global render_show
 
 section .text
@@ -265,6 +266,149 @@ render_copyspr:
         pop     ebx
 
         ret
+
+
+render_renderRect:
+    ; Render a filled rectangle
+        ; Extract width and height from ecx to edx - esi
+        push    ebx
+        push    ecx
+        push    edx
+        push    esi
+
+        ; height position
+        xor     esi, esi
+        mov     si, cx
+
+        ; width position
+        shr     ecx, 16
+        mov     edx, ecx
+
+
+        ; Extract x and y from ebx to ebx - ecx
+        xor     ecx, ecx
+        mov     cx, bx
+
+        test    cx, 0x8000
+        jz      .no_extension
+
+        ; "cwd of ecx" - I should be a poet
+        or      ecx, 0xffff0000
+
+    .no_extension:
+        ; x position
+        sar     ebx, 16
+
+        ; Check right and down boundaries
+        cmp     ebx, [width]
+        jge     .no_draw1
+        cmp     ecx, [height]
+        jge     .no_draw1
+
+        ; Save the remaining registers
+        push    edi
+
+        ; ebx - ecx : x - y ; edx - esi : w - h
+        ; Check left and right positions
+
+        cmp     ebx, 0
+        jge     .okayx
+
+        add     edx, ebx ; (edx minus part not drawn)
+        xor     ebx, ebx
+        cmp     edx, 0
+        jl      .no_draw2
+
+    .okayx:
+
+        cmp     ecx, 0
+        jge     .okayy
+
+        add     esi, ecx ; (esi minus part not drawn)
+        xor     ecx, ecx
+        cmp     esi, 0
+        jl      .no_draw2
+
+    .okayy:
+
+        ; Calculate the right and down boundaries of the rectangle
+        add     edx, ebx ; right bound
+        cmp     edx, [width]
+
+        jle     .no_wchange
+        mov     edx, [width]
+
+    .no_wchange:
+        add     esi, ecx ; down part
+        cmp     esi, [height]
+        jle     .no_hchange
+        mov     esi, [height]
+
+    .no_hchange:
+        
+        ; Start drawing to the screen
+        ; Calculate absolute position
+        mov     edi, [width]
+        imul    edi, ecx
+        imul    edi, 4
+        add     edi, ebx
+        add     edi, ebx
+        add     edi, ebx
+        add     edi, ebx
+        add     edi, [frameptr] ; edi now holds the absolute position on frameb.
+
+        ; Save positions
+        mov     [buf_x], ebx
+
+    .yloop:
+        ; Check if y is out of bounds
+        cmp     ecx, esi
+        jae     .endy
+
+        mov     ebx, [buf_x]
+        push    edi
+        
+        .xloop:
+            ; Check if x is out of bounds
+            cmp     ebx, edx
+            jae     .endx
+
+            ; Copy color to memory
+            mov     [edi], eax
+            add     edi, 4
+
+            ; Pixel finished, let's check next Pixel
+            inc     ebx
+
+            jmp     .xloop
+
+        .endx:
+        ; x loop finished, update y loop
+        inc     ecx
+
+        ; Advance to the next line
+        pop     edi
+        add     edi, [width]
+        add     edi, [width]
+        add     edi, [width]
+        add     edi, [width]
+
+        jmp     .yloop
+    .endy:
+        ; Drawing rectangle finished
+
+    .no_draw2:
+        pop     edi
+
+    .no_draw1:
+        pop     esi
+        pop     edx
+        pop     ecx
+        pop     ebx
+
+
+        ret
+
 
 render_show:
     ; Show result on the window

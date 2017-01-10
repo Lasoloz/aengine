@@ -38,7 +38,7 @@ main:
 
         mov     eax, 800
         mov     ebx, 600
-        mov     ecx, 0
+        xor     ecx, ecx
         mov     edx, win_title
 
         call    render_createWindow
@@ -69,11 +69,18 @@ main:
             test    eax, eax
             jnz     .eventloop
         
-        mov     eax, 0x00ffffff
+        mov     eax, 0x00ff2020
         call    render_clear
 
         mov     eax, msg_fontrender
+        xor     ebx, ebx
         call    font_renderText
+
+        ; Render a rectangle too
+        mov     eax, 0x00ff0000
+        mov     ebx, 0x00100190
+        mov     ecx, 0x00810023
+        call    render_renderRect
 
         call    render_show
 

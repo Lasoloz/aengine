@@ -28,6 +28,7 @@ nasm -f win32 src/graphics/sprite.asm -o obj/graphics/sprite.obj
 nasm -f win32 src/graphics/render.asm -o obj/graphics/render.obj
 nasm -f win32 src/graphics/fonts.asm -o obj/graphics/fonts.obj
 nasm -f win32 src/userutil.asm -o obj/userutil.obj
+nasm -f win32 src/demo/snake_map.asm -o obj/demo/snake_map.obj
 
 nasm -f win32 src/demo/snake.asm -o obj/snake.obj
 
@@ -38,7 +39,7 @@ nasm -f win32 src/demo/snake.asm -o obj/snake.obj
 
 :: Step #2: Link tests
 :: nlink MUST be added to path variable!
-echo Linking tests...
+echo Linking game...
 
 ::nlink obj/solitaire.obj^
 ::      obj/graphics/fonts.obj^
@@ -54,5 +55,6 @@ nlink obj/snake.obj^
       obj/userutil.obj^
       obj/graphics/sprite.obj^
       obj/graphics/render.obj^
+      obj/demo/snake_map.obj^
       -lthird-party/mio -lthird-party/io -lthird-party/util -lthird-party/gfx^
       -o game/snake.exe

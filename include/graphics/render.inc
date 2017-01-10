@@ -41,7 +41,7 @@ extern render_clear
 ; Clears the framebuffer
 ;
 ; Parameters:
-; eax - Clear color (bbggrr00)
+; eax - Clear color (00rrggbb)
 ; No return values
 
 
@@ -53,6 +53,17 @@ extern render_copyspr
 ; eax - Sprite's address
 ; ebx - x and y position for rendering (x - higher part, y - lower part)
 ;     - x and y might be negative
+; No return values
+
+
+;;;
+extern render_renderRect
+; Renders a rectangle to the framebuffer
+;
+; Parameters:
+; eax - Fill color (00rrggbb)
+; ebx - x and y position for rendering (x - higher part, y - lower part)
+; ecx - width and height for rendering (w - higher part, h - lower part)
 ; No return values
 
 
