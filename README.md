@@ -1,4 +1,4 @@
-# aengine
+# ængine
 A game and its engine written in assembly, mainly based on gfx library.
 
 ## Why I write this in assembly?
