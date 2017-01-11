@@ -458,7 +458,7 @@ main:
 
 
         ; Set speed (I have to change this later...)
-        mov     esi, 5
+        mov     esi, 2
         mov     [speed], esi
 
         .stateloop:

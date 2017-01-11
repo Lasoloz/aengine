@@ -6,7 +6,7 @@
 
 %include 'include/graphics/sprite.inc' ; Snake head, food
 %include 'include/graphics/render.inc' ; Rendering functions
-%include 'third-party/util.inc' ; Memory allocation
+%include 'third-party/util.inc' ; Memory allocation and random
 
 %define m_void   0
 %define m_sleft  1
@@ -99,6 +99,60 @@ make_effective_address:
 ;;; LOCAL FUNCTION
 create_food:
     ; Create food
+        push    eax
+        push    ecx
+        push    edx
+        push    edi
+
+        call    rand
+        mov     edi, map_width
+        xor     edx, edx
+        div     edi
+
+        mov     ecx, edx ; Modulo
+
+
+        call    rand
+        mov     edi, map_height
+        xor     edx, edx
+        div     edi
+
+        ; It's in edx
+
+
+        call    make_effective_address
+        cmp     byte [edi], m_void
+        jz      .okay
+        
+        ; Position is used up, so we choose the first available position for our
+        ; food
+
+        mov     ecx, map_tilenum
+        mov     edi, map
+
+    .searchloop:
+        cmp     byte [edi], m_void
+        jz      .okay
+
+        inc     edi
+
+        loop    .searchloop
+        
+        ; If couldn't find free position, then we must end game (end of level)
+        stc
+        jmp     .exit
+
+    .okay:
+        mov     byte [edi], m_food
+        
+        clc
+
+    .exit:
+        pop     edi
+        pop     edx
+        pop     ecx
+        pop     eax
+
         ret
 
 
@@ -174,10 +228,15 @@ sm_moveSnake:
 
         mov     byte [edi], m_shead
         call    create_food
+        jc      .collision
+        ; Not really collision, but end of game, 'cause we can't create food
+
         mov     ebx, [points]
         inc     ebx
         mov     [points], ebx
         
+        ; We took  a food, so we can't move the tail...
+        jmp     .endfunc
 
     .test_tail:
         ; Move tail
