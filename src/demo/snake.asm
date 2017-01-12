@@ -119,7 +119,7 @@ menuproc:
                 cmp     eax, 274
                 je      .movedown
 
-                cmp     eax, 275
+                cmp     eax, 13
                 je      .selected
 
                 jmp     .readeventsloop

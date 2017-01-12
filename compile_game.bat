@@ -1,4 +1,4 @@
-:: Copyright (c) 2016-2017 Heim László
+﻿:: Copyright (c) 2016-2017 Heim László
 :: Compile and link Solitaire demo application
 
 :: Step #0: Turn echo off and create directories for objects and binaries
@@ -15,6 +15,7 @@ if not exist obj\demo mkdir obj\demo
 
 if not exist game mkdir game
 
+if not exist game\io.dll copy third-party\io.dll game\io.dll
 if not exist game\mio.dll copy third-party\mio.dll game\mio.dll
 if not exist game\util.dll copy third-party\util.dll game\util.dll
 if not exist game\gfx.dll copy third-party\gfx.dll game\gfx.dll

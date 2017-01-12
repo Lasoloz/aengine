@@ -1,4 +1,4 @@
-:: Copyright (c) 2016-2017 Heim László
+﻿:: Copyright (c) 2016-2017 Heim László
 :: Compile and link tests with one command
 
 :: Step #0: Turn echo off and create directories for objects and binaries
@@ -14,6 +14,7 @@ if not exist obj\tests mkdir obj\tests
 
 if not exist bin mkdir bin
 
+if not exist bin\io.dll copy third-party\io.dll bin\io.dll
 if not exist bin\mio.dll copy third-party\mio.dll bin\mio.dll
 if not exist bin\util.dll copy third-party\util.dll bin\util.dll
 if not exist bin\gfx.dll copy third-party\gfx.dll bin\gfx.dll
