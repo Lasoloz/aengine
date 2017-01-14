@@ -15,6 +15,7 @@
 %include 'include/graphics/fonts.inc'  ; For text rendering
 %include 'include/graphics/sprite.inc' ; For image handling
 %include 'include/demo/snake_map.inc' ; Game utilities
+%include 'include/demo/score.inc' ; Score handling
 
 global main
 
@@ -364,7 +365,22 @@ gameproc:
             jmp     .no_dir_change
 
         .death:
+            call    sm_queryFoodNum
+            call    sr_testScore
+            jc      .save_score
+
+            ; No highscore
             xor     edx, edx
+
+            jmp     .render_exit
+
+        .save_score:
+            ; We have to save the score, so we jump to save screen, which has
+            ; code 3 in state selector
+            ; We will do a query again in the highscore window
+
+            mov     edx, 3
+
             jmp     .render_exit
 
         .no_dir_change:
@@ -409,6 +425,18 @@ scoreproc:
         ret
 
 
+saveproc:
+    ; No save processing currently!
+        push    eax
+
+        mov     eax, msg_enterSScrState
+        call    io_writestr
+        call    io_writeln
+
+        pop     eax
+
+        ret
+
 
 main:
     ; Initialize fonts
@@ -447,6 +475,11 @@ main:
         call    io_writeln
 
 
+        ; Load score table
+        mov     eax, scoredat
+        call    sr_loadFromFile
+
+
         ; Enter state selection loop
         ; States:
         ; 0 - Menu state, 1 - Game state, 2 - Highscore state
@@ -469,6 +502,8 @@ main:
             je      .gamestart
             cmp     edx, 2
             je      .highscore
+            cmp     edx, 3
+            je      .savescore
 
             ; Menu returned other number, so exit is requested
             jmp     .exitgame
@@ -486,10 +521,19 @@ main:
         .highscore:
             ; Start highscore state
             call    scoreproc
-            xor     edx, edx ; Return to menu after game loop
+            xor     edx, edx ; Return to menu after loop
+            jmp     .stateloop
+
+        .savescore:
+            ; Save new score in highscores table
+            call    saveproc
+            xor     edx, edx ; Return to the menu after loop
             jmp     .stateloop
 
     .exitgame:
+        ; Try to save score if modified
+        call    sr_saveToFile
+
         ; Exit application
         mov     eax, msg_exit
         call    io_writestr
@@ -546,6 +590,7 @@ section .data
     msg_enterMenuState db 'Entering menu state...', 0
     msg_enterGameState db 'Entering game state...', 0
     msg_enterHScrState db 'Entering highscore menu state...', 0
+    msg_enterSScrState db 'Entering save score screen...', 0
 
     msg_exit db 'Exiting application...', 0
 
@@ -556,6 +601,10 @@ section .data
 
     ; Font data
     fonts_relative_path db '..\resources\fonts\', 0
+
+
+    ; Score file
+    scoredat db 'score.scr', 0
 
 
     ; Menu filenames

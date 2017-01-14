@@ -1,4 +1,4 @@
-﻿:: Copyright (c) 2016-2017 Heim László
+:: Copyright (c) 2016-2017 Heim László
 :: Compile and link Solitaire demo application
 
 :: Step #0: Turn echo off and create directories for objects and binaries
@@ -30,6 +30,7 @@ nasm -f win32 src/graphics/render.asm -o obj/graphics/render.obj
 nasm -f win32 src/graphics/fonts.asm -o obj/graphics/fonts.obj
 nasm -f win32 src/userutil.asm -o obj/userutil.obj
 nasm -f win32 src/demo/snake_map.asm -o obj/demo/snake_map.obj
+nasm -f win32 src/demo/score.asm -o obj/demo/score.obj
 
 nasm -f win32 src/demo/snake.asm -o obj/snake.obj
 
@@ -57,5 +58,6 @@ nlink obj/snake.obj^
       obj/graphics/sprite.obj^
       obj/graphics/render.obj^
       obj/demo/snake_map.obj^
+      obj/demo/score.obj^
       -lthird-party/mio -lthird-party/io -lthird-party/util -lthird-party/gfx^
       -o game/snake.exe

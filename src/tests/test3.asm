@@ -69,7 +69,8 @@ main:
             test    eax, eax
             jnz     .eventloop
         
-        mov     eax, 0x00ff2020
+        ; mov     eax, 0x00ff2020
+        mov     eax, 0x00ffffff
         call    render_clear
 
         mov     eax, msg_fontrender

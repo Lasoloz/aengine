@@ -8,6 +8,8 @@
 %include 'include/graphics/render.inc' ; Rendering functions
 %include 'third-party/util.inc' ; Memory allocation and random
 
+%include 'third-party/io.inc' ; For debugging..
+
 %define m_void   0
 %define m_sleft  1
 %define m_sright 2
@@ -287,6 +289,9 @@ sm_moveSnake:
 
     .collision:
         ; collision is detected
+        mov     eax, [points]
+        call    io_writeint
+        call    io_writeln
         stc
 
     .endfunc:
@@ -398,6 +403,8 @@ sm_renderMap:
 
 sm_queryFoodNum:
     ; Query the number of foods eaten
+        mov     eax, [points]
+        
         ret
 
 
