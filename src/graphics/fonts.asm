@@ -308,6 +308,7 @@ font_renderNumber:
 
         mov     eax, [glyphs + 4] ; Zero characer in glyph array
         mov     di, [eax]
+        add     di, [spacing]
         shl     edi, 16
 
     .render_zeros:
@@ -331,8 +332,9 @@ font_renderNumber:
         ; Render sprite for digit
         call    render_copyspr
 
-        ; Advance position with width
+        ; Advance position with width and spacing
         mov     di, [eax]
+        add     di, [spacing]
         shl     edi, 16
 
         add     ebx, edi

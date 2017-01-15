@@ -3,7 +3,9 @@
 ;
 ; Header file for score handling
 ; - Load score file
+; - Test new highscore
 ; - Modify score cache
+; - Render highscore table
 ; - Save score cache to file
 ;
 ; Highscore format:
@@ -40,9 +42,17 @@ extern sr_testScore
 extern sr_pushScore
 ; Push a score to the scoretable
 ;
-; Paramter:
+; Paramters:
 ; eax - Points
 ; ebx - Name of player
+; No return values
+
+
+extern sr_renderTable
+; Render a table for names and scores to a specified location
+;
+; Parameter:
+; ebx - Position on screen
 ; No return values
 
 

@@ -6,10 +6,13 @@
 
 %include 'third-party/util.inc' ; File handling
 %include 'include/userutil.inc' ; String copying
+%include 'include/graphics/render.inc' ; Rendering utilities
+%include 'include/graphics/fonts.inc' ; Text and number rendering
 
 global sr_loadFromFile
 global sr_testScore
 global sr_pushScore
+global sr_renderTable
 global sr_saveToFile
 
 section .text
@@ -65,24 +68,34 @@ sr_loadFromFile:
     .open_fail:
         ; When fails to open file or read data from file...
         mov     byte [modified], 1 ; we have to save something
-        mov     edx, namelist
-        mov     ecx, 100
 
-    .spaceloop:
-        mov     byte [edx], ' '
+        ; Save defaults to scorelist:
+        xor     ecx, ecx
 
-        inc     edx
-        loop    .spaceloop
+    .nameloop:
+        xor     edx, edx
+        .strcopy:
+            mov     bl, [str_default+edx]
+            mov     [namelist+ecx], bl
+
+            inc     edx
+            inc     ecx
+            cmp     edx, 10
+            jb      .strcopy
+
+        cmp     ecx, 100
+        jb      .nameloop
 
 
+        ; Save default score values
         mov     edx, scorelist
-        mov     ebx, 10
+        mov     ebx, 2
         mov     ecx, 10
 
     .scoreloop:
         mov     [edx], ebx
 
-        add     ebx, 10
+        add     ebx, 2
         add     edx, 4
         loop    .scoreloop
 
@@ -101,7 +114,7 @@ sr_loadFromFile:
 sr_testScore:
     ; Test a score
         cmp     eax, [scorelist]
-        jae     .save
+        ja      .save
 
         clc
 
@@ -129,8 +142,8 @@ sr_pushScore:
         mov     edi, namelist
 
     .searchpos:
-        cmp     [esi], eax
-        jbe     .posfound
+        cmp     [esi+4], eax
+        jae     .posfound
 
         mov     edx, [esi + 4]
         mov     [esi], edx
@@ -169,6 +182,85 @@ sr_pushScore:
         
         mov     byte [modified], 1
 
+        pop     esi
+        pop     edi
+        pop     edx
+        pop     ecx
+        pop     ebx
+        pop     eax
+
+        ret
+
+
+sr_renderTable:
+    ; Render scores in the format of a table to a specified position
+        push    eax
+        push    ebx
+        push    ecx
+        push    edx
+        push    edi
+        push    esi
+
+        ; Render base rectangle
+        mov     eax, 0x00960409
+        mov     ecx, 0x00d50117
+        call    render_renderRect
+
+        ; Render header
+        ; Align position to name string
+        add     ebx, 0x00020002
+        mov     eax, str_name
+        call    font_renderText
+
+        ; Save position
+        mov     edi, ebx
+
+        ; Align position to points string
+        add     ebx, 0x00a10000
+        mov     eax, str_points
+        call    font_renderText
+
+        ; Align position to first list item's place
+        add     edi, 0x0000001a
+
+        ; Start from 10th element of save arrays (with the best scores)
+        mov     esi, 10
+
+    .listloop:
+        ; Iterate trough list elements
+        dec     esi
+        ; Copy name to buffer
+        mov     eax, str_buffer
+
+        mov     ebx, esi
+        imul    ebx, 10 ; Will never be negative
+        add     ebx, namelist
+
+        mov     ecx, 11
+
+        call    uu_copyStr
+
+
+        ; Render text to position
+        mov     ebx, edi
+        call    font_renderText
+
+
+        ; Render points to position
+        mov     eax, [scorelist+esi*4]
+        add     ebx, 0x00a10000
+        mov     ecx, 3
+        call    font_renderNumber
+
+        ; Next line
+        add     edi, 0x00000019
+
+        ; Test if there is something to show from the table
+        test    esi, esi
+        jnz     .listloop
+
+
+        ; End of rendering, restore registers
         pop     esi
         pop     edi
         pop     edx
@@ -222,7 +314,14 @@ sr_saveToFile:
 
 
 section .bss
-    file_name resb 64
     scorelist resd 10
+    file_name resb 64
     namelist resb 100
     modified resb 1
+    str_buffer resb 11
+
+
+section .data
+    str_name db 'Name      ', 0
+    str_points db 'Pts', 0
+    str_default db 'default   ', 0

@@ -396,7 +396,7 @@ sm_renderMap:
         ; Render base rectangle
         mov     eax, 0x00960409
         mov     ebx, 0x02750003
-        mov     ecx, 0x00a2001a
+        mov     ecx, 0x00a4001a
         call    render_renderRect
         
         ; Render string
@@ -405,10 +405,17 @@ sm_renderMap:
         call    font_renderText
 
         ; Render points
+        ; Set spacing
+        mov     eax, 1
+        call    font_setSpacing
+        ; Render points
         mov     eax, [points]
         mov     ebx, 0x02e60004
         mov     ecx, 3
         call    font_renderNumber
+        ; Reset spacing
+        xor     eax, eax
+        call    font_setSpacing
 
         ; End of draw
         pop     esi

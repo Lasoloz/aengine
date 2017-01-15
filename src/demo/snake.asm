@@ -415,14 +415,86 @@ gameproc:
 scoreproc:
     ; No score processing currently!
         push    eax
+        push    ebx
 
         mov     eax, msg_enterHScrState
         call    io_writestr
         call    io_writeln
 
+
+        ; Load background
+        mov     eax, high_backg
+        call    spr_load_gimp_ppm
+        test    eax, eax
+        jz      .alloc_failure
+
+        push    ecx
+        mov     ecx, eax
+
+
+        ; Just a simple render loop
+        .render_loop:
+            .event_loop:
+                call    gfx_getevent
+
+                test    eax, eax
+                jz      .end_loop
+
+                cmp     eax, 23
+                je      .change_edx0
+
+                cmp     eax, 27
+                je      .change_edx1
+
+                cmp     eax, 13
+                je      .change_edx1
+
+                jmp     .event_loop
+
+            .change_edx0:
+                mov     edx, -1
+                jmp     .event_loop
+
+            .change_edx1:
+                xor     edx, edx
+                jmp     .event_loop
+
+        .end_loop:
+            cmp     edx, 0
+            jle     .render_end
+
+            ; Clear render screen
+            mov     eax, 0x00ffffff
+            call    render_clear
+
+            ; Render background
+            mov     eax, ecx
+            mov     ebx, 0x00000000
+            call    render_copyspr
+
+            ; Constant position for table
+            mov     ebx, 0x025800ef
+            ; Render table
+            call    sr_renderTable
+
+            call    render_show
+
+            jmp     .render_loop
+
+    .render_end:
+        pop     ecx
+        pop     ebx
         pop     eax
-        
+
         ret
+
+    .alloc_failure:
+        mov     edx, -1
+        pop     ebx
+        pop     eax
+
+        ret
+
 
 
 saveproc:
@@ -433,6 +505,148 @@ saveproc:
         call    io_writestr
         call    io_writeln
 
+        ; Load background
+        mov     eax, save_backg
+        call    spr_load_gimp_ppm
+        test    eax, eax
+        jz      .alloc_failure
+
+
+        push    ebx
+        push    ecx
+        push    edi
+        push    esi
+
+        mov     esi, eax ; Save background pointer
+
+        ; Initialize name buffer
+        xor     ecx, ecx
+
+    .init_buf:
+        mov     byte [name_buffer+ecx], ' '
+        inc     ecx
+        cmp     ecx, 10
+        jb      .init_buf
+
+        mov     byte [name_buffer+ecx], 0
+
+
+        ; Start saving name, move cursor to 0
+        xor     edi, edi
+
+        .render_loop:
+            .event_loop:
+                call    gfx_getevent
+                test    eax, eax
+                jz      .no_event
+
+                cmp     eax, 23
+                je      .end_save_0
+
+                cmp     eax, 27
+                je      .end_save_1
+
+                cmp     eax, 13
+                je      .end_save_1
+
+                cmp     eax, 8
+                je      .try_delete
+
+                cmp     eax, 'a'
+                jb      .event_loop
+
+                cmp     eax, 'z'
+                jbe     .char_press
+
+                jmp     .event_loop
+
+            .end_save_0:
+                mov     edx, -1
+                jmp     .save
+
+            .end_save_1:
+                mov     edx, 2
+
+            .save:
+                ; Save the score:
+                call    sm_queryFoodNum
+                mov     ebx, name_buffer
+                call    sr_pushScore
+
+                jmp     .event_loop
+
+            .try_delete:
+                ; Try to delete a char (pressed backspace)
+                test    edi, edi
+                jz      .event_loop ; No delete
+
+                dec     edi
+                mov     byte [name_buffer+edi], ' '
+                
+                jmp     .event_loop
+
+            .char_press:
+                ; Pressed a character modify string
+                cmp     edi, 10
+                je      .event_loop ; Can't add character
+
+                mov     [name_buffer+edi], al
+                inc     edi
+
+                jmp     .event_loop
+
+        .no_event:
+            ; Continue drawing
+            cmp     edx, -1
+            je      .exitstate
+
+            cmp     edx, 2
+            je      .exitstate
+
+            ; Clear screen:
+            mov     eax, 0x00ffffff
+            call    render_clear
+
+            ; Render background:
+            mov     eax, esi
+            xor     ebx, ebx
+
+            call    render_copyspr
+
+
+            ; Render save string:
+            mov     eax, name_buffer
+            mov     ebx, 0x00100010
+
+            call    font_renderText
+
+            ; Render points string:
+            call    sm_queryFoodNum
+            mov     ebx, 0x01000010
+            mov     ecx, 3
+
+            call    font_renderNumber
+
+
+            call    render_show
+
+            jmp     .render_loop
+
+    .exitstate:
+        ; Exit save state:
+
+        pop     esi
+        pop     edi
+        pop     ecx
+        pop     ebx
+        pop     eax
+
+        ret
+
+
+    .alloc_failure:
+        ; Background allocation failure
+        mov     edx, -1
         pop     eax
 
         ret
@@ -521,13 +735,11 @@ main:
         .highscore:
             ; Start highscore state
             call    scoreproc
-            xor     edx, edx ; Return to menu after loop
             jmp     .stateloop
 
         .savescore:
             ; Save new score in highscores table
             call    saveproc
-            xor     edx, edx ; Return to the menu after loop
             jmp     .stateloop
 
     .exitgame:
@@ -573,6 +785,9 @@ section .bss
     last_dir resd 1
     speed   resd 1
 
+    ; Name buffer:
+    name_buffer resb 11
+
 
 section .data
     ; State messages
@@ -604,7 +819,7 @@ section .data
 
 
     ; Score file
-    scoredat db 'score.scr', 0
+    scoredat db 'score.sav', 0
 
 
     ; Menu filenames
@@ -615,3 +830,9 @@ section .data
     menu_highs1 db '..\resources\highs1.ppm', 0
     menu_exitg0 db '..\resources\exitg0.ppm', 0
     menu_exitg1 db '..\resources\exitg1.ppm', 0
+
+    ; Highscore screen filename
+    high_backg db '..\resources\background2.ppm', 0
+
+    ; Save screen filename
+    save_backg db '..\resources\background3.ppm', 0
