@@ -7,6 +7,7 @@
 %include 'include/graphics/sprite.inc' ; Snake head, food
 %include 'include/graphics/render.inc' ; Rendering functions
 %include 'third-party/util.inc' ; Memory allocation and random
+%include 'include/graphics/fonts.inc' ; Rendering utilities
 
 %include 'third-party/io.inc' ; For debugging..
 
@@ -391,6 +392,24 @@ sm_renderMap:
 
     .yend:
 
+        ; Render points to the upper-right corner
+        ; Render base rectangle
+        mov     eax, 0x00960409
+        mov     ebx, 0x02750003
+        mov     ecx, 0x00a2001a
+        call    render_renderRect
+        
+        ; Render string
+        mov     eax, str_point
+        mov     ebx, 0x02760004
+        call    font_renderText
+
+        ; Render points
+        mov     eax, [points]
+        mov     ebx, 0x02e60004
+        mov     ecx, 3
+        call    font_renderNumber
+
         ; End of draw
         pop     esi
         pop     edx
@@ -415,3 +434,6 @@ section .bss
     stail_x resd 1
     stail_y resd 1
     points  resd 1
+
+section .data
+    str_point db 'Points ', 0

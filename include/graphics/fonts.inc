@@ -3,7 +3,10 @@
 ;
 ; Header file for font system
 ; - Load fonts
-; - Draw text
+; - Set spacing for text rendering
+; - Set line height for text rendering
+; - Render text
+; - Render decimal number
 ; ? Calculate text area
 ; - Free font cache
 ;
@@ -53,6 +56,17 @@ extern font_renderText
 ; eax - String pointer (C-Style string)
 ; ebx - x, y positions for rendering (higher part x, lower part y)
 ; No return value
+
+
+;;;
+extern font_renderNumber
+; Renders an unsigned number in decimal form
+;
+; Parameters:
+; eax - Number to render
+; ebx - x, y positions for rendering (higher bits x, lower bits y)
+; ecx - Min width of number (first part filled with 0-s)
+; No return values
 
 
 ;;;

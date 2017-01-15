@@ -1,4 +1,4 @@
-﻿:: Copyright (c) 2016-2017 Heim László
+:: Copyright (c) 2016-2017 Heim László
 :: Compile and link tests with one command
 
 :: Step #0: Turn echo off and create directories for objects and binaries

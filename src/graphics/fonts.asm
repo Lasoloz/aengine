@@ -15,6 +15,7 @@ global font_loadFonts
 global font_setSpacing
 global font_setLineHeight
 global font_renderText
+global font_renderNumber
 global font_free
 
 
@@ -268,6 +269,84 @@ font_renderText:
         pop     ecx
         pop     ebx
         pop     eax
+        ret
+
+
+font_renderNumber:
+    ; Render an unsigned number to the specified position with specified min
+    ; width
+        push    eax
+        push    ebx
+        push    ecx
+        push    edx
+        push    edi
+        push    esi
+
+        mov     esi, ecx ; Save min width for pre-fill
+
+        ; Extract digits from the number
+        mov     edi, 10
+        xor     ecx, ecx
+
+    .extract_loop:
+        xor     edx, edx
+
+        div     edi
+
+        push    edx
+        inc     ecx
+
+        test    eax, eax
+        jnz     .extract_loop
+
+    ; Extraction finsihed, now we calculate how many 0-s there are at pre-fill
+        cmp     esi, ecx
+        jbe     .render_loop
+
+        xchg    esi, ecx
+        sub     ecx, esi
+
+        mov     eax, [glyphs + 4] ; Zero characer in glyph array
+        mov     di, [eax]
+        shl     edi, 16
+
+    .render_zeros:
+        call    render_copyspr
+        ; Advance position with width
+
+        add     ebx, edi
+
+        loop    .render_zeros
+
+        mov     ecx, esi ; Move back the original number of digits
+
+    ; Everything finished, now load saved digits, and render them:
+    .render_loop:
+        pop     edx
+        inc     edx ; +1 for array offset
+
+        ; Move sprite address to eax
+        mov     eax, [glyphs + edx * 4]
+
+        ; Render sprite for digit
+        call    render_copyspr
+
+        ; Advance position with width
+        mov     di, [eax]
+        shl     edi, 16
+
+        add     ebx, edi
+
+        loop    .render_loop
+
+    ; Render finished, restore registers
+        pop     esi
+        pop     edi
+        pop     edx
+        pop     ecx
+        pop     ebx
+        pop     eax
+
         ret
 
 

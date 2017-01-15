@@ -83,6 +83,14 @@ main:
         mov     ecx, 0x00810023
         call    render_renderRect
 
+
+        ; Also: test number rendering
+        mov     eax, 4291730865
+        mov     ebx, 0x00a00190
+        ; xor     ecx, ecx ; Zero prefill
+        mov     ecx, 20 ; Test prefill
+        call    font_renderNumber
+
         call    render_show
 
         jmp     .mainloop
