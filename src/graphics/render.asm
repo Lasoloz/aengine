@@ -6,6 +6,7 @@
 
 %include 'include/graphics/sprite.inc' ; For sprites
 %include 'third-party/gfx.inc'         ; For rendering
+%include 'third-party/util.inc'        ; Sync framerate to 60 Hz
 
 global render_createWindow
 global render_destroyWindow
@@ -412,12 +413,51 @@ render_renderRect:
 
 render_show:
     ; Show result on the window
+    ; Calculate sleep to achieve ~60 Hz
+        push    eax
+        push    ebx
+        ; "Push" xmm0
+        sub     esp, 16
+        movdqu  [esp], xmm0
+
         call    gfx_unmap
         call    gfx_draw
+
+        call    timer_query
+        mulsd   xmm0, [cst_1000]
+        cvttsd2si eax, xmm0
+
+        mov     ebx, eax
+        sub     eax, [last_time]
+
+        sub     eax, 33
+        neg     eax
+
+        ; Do we have to sleep?
+        cmp     eax, 33
+        jg      .no_sync
+
+        cmp     eax, 0
+        jl      .no_sync
+
+        call    sleep
+
+    .no_sync:
+        mov     [last_time], ebx
+
+        ; "Pop" xmm0
+        movdqu  xmm0, [esp]
+        add     esp, 16
+
+        pop     ebx
+        pop     eax
+
         ret
 
 
 section .bss
+    last_time resd 1
+
     frameptr resd 1
     width    resd 1
     height   resd 1
@@ -425,3 +465,7 @@ section .bss
     buf_x_s  resd 1
     buf_y    resd 1
     buf_imx  resw 1
+
+
+section .data
+    cst_1000 dd 1000.0

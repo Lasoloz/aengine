@@ -558,10 +558,6 @@ gameproc:
 
             call    render_show
 
-
-            mov     eax, 33
-            call    sleep
-
             jmp     .render_test_loop
 
         .render_exit:

@@ -475,12 +475,13 @@ sm_queryFoodNum:
 
 
 section .bss
-    map resb map_tilenum ; map_width * map_height
     shead_x resd 1
     shead_y resd 1
     stail_x resd 1
     stail_y resd 1
     points  resd 1
+
+    map resb map_tilenum ; map_width * map_height
 
 section .data
     str_point db 'Points ', 0
