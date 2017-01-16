@@ -19,8 +19,8 @@
 
 
 %define sp_easy   4
-%define sp_medium 2
-%define sp_hard   1
+%define sp_medium 3
+%define sp_hard   2
 
 global main
 
@@ -94,6 +94,7 @@ menuproc:
         push    ebx
         push    ecx
         push    edi
+        push    esi
 
         mov     eax, msg_enterMenuState
         call    io_writestr
@@ -164,6 +165,55 @@ menuproc:
     
         .rendermenuloop:
             ; Render menu
+            ; Check mouse state:
+            call    gfx_getmouse
+            cmp     eax, 0x0020
+            jl      .mouse_read_exit
+            
+            cmp     eax, 0x014e
+            jg      .mouse_read_exit
+
+            ; It's maybe on a button
+            cmp     ebx, 0x0100
+            jl      .mouse_read_exit
+            
+            cmp     ebx, 0x0152
+            jle     .select_0
+
+            cmp     ebx, 0x015a
+            jl      .mouse_read_exit
+
+            cmp     ebx, 0x01ac
+            jle     .select_1
+
+            cmp     ebx, 0x01b1
+            jl      .mouse_read_exit
+
+            cmp     ebx, 0x0203
+            jg      .mouse_read_exit
+
+            ; Selection 2
+            mov     ecx, 2
+            or      esi, 1
+            jmp     .mouse_read_ok
+
+            ; Selection 0
+        .select_0:
+            mov     ecx, 0
+            or      esi, 1
+            jmp     .mouse_read_ok
+
+            ; Selection 1
+        .select_1:
+            mov     ecx, 1
+            or      esi, 1
+            jmp     .mouse_read_ok
+
+        .mouse_read_exit:
+            and     esi, 0
+
+        .mouse_read_ok:
+
             .readeventsloop:
                 ; Read events
                 call    gfx_getevent
@@ -176,6 +226,9 @@ menuproc:
 
                 cmp     eax, 27
                 je      .quitapp
+
+                cmp     eax, 1
+                je      .mpress
 
                 cmp     eax, 273
                 je      .moveup
@@ -205,6 +258,12 @@ menuproc:
 
                 mov     ecx, 0
                 jmp     .readeventsloop
+
+            .mpress:
+                ; Mouse pressed:
+                test    esi, 1
+                jz      .readeventsloop
+                ; Else check selection:
 
             .selected:
                 ; Check selection
@@ -319,6 +378,7 @@ menuproc:
             loop    .dealloc_loop0
 
         ; Restore registers
+        pop     esi
         pop     edi
         pop     ecx
         pop     ebx
