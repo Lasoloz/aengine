@@ -17,14 +17,83 @@
 %include 'include/demo/snake_map.inc' ; Game utilities
 %include 'include/demo/score.inc' ; Score handling
 
+
+%define sp_easy   4
+%define sp_medium 2
+%define sp_hard   1
+
 global main
 
 section .text
+
+change_diff:
+    ; Change difficulty of game
+        push    eax
+
+        cmp     dword [speed], sp_hard
+        je      .change_easy
+
+        cmp     dword [speed], sp_easy
+        je      .change_medium
+
+    ; Change to hard
+        mov     dword [speed], sp_hard
+        mov     eax, score_hard
+        jmp     .loadscore
+
+    .change_easy:
+        mov     dword [speed], sp_easy
+        mov     eax, score_easy
+        jmp     .loadscore
+
+    .change_medium:
+        mov     dword [speed], sp_medium
+        mov     eax, score_med
+    
+    .loadscore:
+        call    sr_saveToFile
+        call    sr_loadFromFile
+
+        pop     eax
+
+        ret
+
+get_level_modifier:
+    ; Return in ebx the level (0 - 2) based on speed
+        push    eax
+        mov     eax, [speed]
+
+        cmp     eax, sp_easy
+        je      .easy
+
+        cmp     eax, sp_medium
+        je      .medium
+
+        mov     ebx, 2 ; Hard
+        jmp     .exit
+
+    .medium:
+        mov     ebx, 1
+        jmp     .exit
+
+    .easy:
+        mov     ebx, 0
+
+    .exit:
+
+        pop     eax
+
+        ret
+
+
+
+
 menuproc:
     ; Menu state process
         push    eax
         push    ebx
         push    ecx
+        push    edi
 
         mov     eax, msg_enterMenuState
         call    io_writestr
@@ -41,8 +110,8 @@ menuproc:
 
         inc     ecx
 
-        ; Start item state 0
-        mov     eax, menu_start0
+        ; Start item
+        mov     eax, menu_start
         call    spr_load_gimp_ppm
         test    eax, eax
         jz      .alloc_failure
@@ -50,8 +119,8 @@ menuproc:
 
         inc     ecx
 
-        ; Start item state 1
-        mov     eax, menu_start1
+        ; Easy difficulty item
+        mov     eax, menu_easy
         call    spr_load_gimp_ppm
         test    eax, eax
         jz      .alloc_failure
@@ -59,8 +128,8 @@ menuproc:
 
         inc     ecx
 
-        ; Highscore item state 0
-        mov     eax, menu_highs0
+        ; Medium difficulty item
+        mov     eax, menu_medium
         call    spr_load_gimp_ppm
         test    eax, eax
         jz      .alloc_failure
@@ -68,8 +137,8 @@ menuproc:
 
         inc     ecx
 
-        ; Highscore item state 1
-        mov     eax, menu_highs1
+        ; Hard difficulty item
+        mov     eax, menu_hard
         call    spr_load_gimp_ppm
         test    eax, eax
         jz      .alloc_failure
@@ -77,8 +146,8 @@ menuproc:
 
         inc     ecx
 
-        ; Exit item state 0
-        mov     eax, menu_exitg0
+        ; Exit item
+        mov     eax, menu_exit
         call    spr_load_gimp_ppm
         test    eax, eax
         jz      .alloc_failure
@@ -86,16 +155,10 @@ menuproc:
 
         inc     ecx
 
-        ; Highscore item state 1
-        mov     eax, menu_exitg1
-        call    spr_load_gimp_ppm
-        test    eax, eax
-        jz      .alloc_failure
-        mov     [menu_sprites+ecx*4], eax
-
-        inc     ecx
         push    ecx
         xor     ecx, ecx
+
+
 
         ; Start menu loop
     
@@ -159,7 +222,8 @@ menuproc:
                 jmp     .readeventsloop
 
             .highscores:
-                mov     edx, 2
+                ; mov     edx, 2
+                call    change_diff
                 jmp     .readeventsloop
 
             .readeventsexit:
@@ -177,48 +241,63 @@ menuproc:
             call    render_copyspr
 
 
+            ; Save selection
+            mov     edi, ecx
+            mov     eax, edi
+            
+            ; Set rectangle size
+            mov     ecx, 0x01320056
             ; Render menu items
             ; Play game item
-            mov     ebx, 0x00200100
-            cmp     ecx, 0
-            je      .0sel
+            cmp     edi, 0
+            jne     .nosel0
+            
+            mov     eax, 0x00402d00
+            mov     ebx, 0x001d00fd
+            call    render_renderRect
 
+        .nosel0:
             mov     eax, [menu_sprites+4]
-            jmp     .end0
-
-        .0sel:
-            mov     eax, [menu_sprites+8]
-
-        .end0:
+            mov     ebx, 0x00200100
             call    render_copyspr
 
-            ; Highscores item
+
+            ; Change difficulty item
+            cmp     edi, 1
+            jne     .nosel1
+
+            mov     eax, 0x00402d00
+            mov     ebx, 0x001d0157
+            call    render_renderRect
+            
+        .nosel1:
+            call    get_level_modifier
+            mov     eax, [menu_sprites+ebx*4+8]
             mov     ebx, 0x0020015a
-            cmp     ecx, 1
-            je      .1sel
-
-            mov     eax, [menu_sprites+12]
-            jmp     .end1
-
-        .1sel:
-            mov     eax, [menu_sprites+16]
-
-        .end1:
             call    render_copyspr
 
-            ; Exit item
-            mov     ebx, 0x002001b4
-            cmp     ecx, 2
-            je      .2sel
 
+
+            ; Render exit button
+            cmp     edi, 2
+            jne     .nosel2
+
+            mov     eax, 0x00402d00
+            mov     ebx, 0x001d01b1
+            call    render_renderRect
+
+        .nosel2:
             mov     eax, [menu_sprites+20]
-            jmp     .end2
-
-        .2sel:
-            mov     eax, [menu_sprites+24]
-
-        .end2:
+            mov     ebx, 0x002001b4
             call    render_copyspr
+
+
+            ; Restore ecx
+            mov     ecx, edi
+
+            ; Render highscore table
+            mov     ebx, 0x030000f0
+            call    sr_renderTable
 
 
             ; Render framebuffer content
@@ -240,6 +319,7 @@ menuproc:
             loop    .dealloc_loop0
 
         ; Restore registers
+        pop     edi
         pop     ecx
         pop     ebx
         pop     eax
@@ -248,6 +328,9 @@ menuproc:
 
 
     .alloc_failure:
+        mov     eax, msg_alloc_error
+        call    io_writestr
+        call    io_writeln
         ; Dealloc images
         test    ecx, ecx
         jz      .exiterror
@@ -261,6 +344,7 @@ menuproc:
     .exiterror:
         mov     edx, -1 ; Exit game due memory error
         ; Restore registers
+        pop     edi
         pop     ecx
         pop     ebx
         pop     eax
@@ -288,6 +372,9 @@ gameproc:
         call    io_writeln
         ; init game field (snake map)
 
+
+        call    get_level_modifier
+        mov     eax, ebx
         call    sm_initMap
         
         .render_test_loop:
@@ -302,6 +389,9 @@ gameproc:
 
                 cmp     eax, 27
                 je      .change_edx1
+
+                cmp     eax, 'p'
+                je      .pause_unpause
 
                 cmp     eax, 275
                 je      .change_dir_right
@@ -348,9 +438,24 @@ gameproc:
                 mov     edi, 2
                 jmp     .eventloop
 
+            .pause_unpause:
+                cmp     edx, 5
+                je      .unpause
+
+                ; Pause game
+                mov     edx, 5
+                jmp     .eventloop
+
+            .unpause:
+                mov     edx, 2
+                jmp     .eventloop
+
         .eventloopexit:
             cmp     edx, 0
             jle     .render_exit
+
+            cmp     edx, 5
+            je      .no_dir_change ; No move, just rendering at pause
 
             ; Stepping
             inc     esi
@@ -409,92 +514,6 @@ gameproc:
         pop     eax
 
         ret
-
-
-
-scoreproc:
-    ; No score processing currently!
-        push    eax
-        push    ebx
-
-        mov     eax, msg_enterHScrState
-        call    io_writestr
-        call    io_writeln
-
-
-        ; Load background
-        mov     eax, high_backg
-        call    spr_load_gimp_ppm
-        test    eax, eax
-        jz      .alloc_failure
-
-        push    ecx
-        mov     ecx, eax
-
-
-        ; Just a simple render loop
-        .render_loop:
-            .event_loop:
-                call    gfx_getevent
-
-                test    eax, eax
-                jz      .end_loop
-
-                cmp     eax, 23
-                je      .change_edx0
-
-                cmp     eax, 27
-                je      .change_edx1
-
-                cmp     eax, 13
-                je      .change_edx1
-
-                jmp     .event_loop
-
-            .change_edx0:
-                mov     edx, -1
-                jmp     .event_loop
-
-            .change_edx1:
-                xor     edx, edx
-                jmp     .event_loop
-
-        .end_loop:
-            cmp     edx, 0
-            jle     .render_end
-
-            ; Clear render screen
-            mov     eax, 0x00ffffff
-            call    render_clear
-
-            ; Render background
-            mov     eax, ecx
-            mov     ebx, 0x00000000
-            call    render_copyspr
-
-            ; Constant position for table
-            mov     ebx, 0x025800ef
-            ; Render table
-            call    sr_renderTable
-
-            call    render_show
-
-            jmp     .render_loop
-
-    .render_end:
-        pop     ecx
-        pop     ebx
-        pop     eax
-
-        ret
-
-    .alloc_failure:
-        mov     edx, -1
-        pop     ebx
-        pop     eax
-
-        ret
-
 
 
 saveproc:
@@ -565,7 +584,7 @@ saveproc:
                 jmp     .save
 
             .end_save_1:
-                mov     edx, 2
+                xor     edx, edx
 
             .save:
                 ; Save the score:
@@ -597,11 +616,8 @@ saveproc:
 
         .no_event:
             ; Continue drawing
-            cmp     edx, -1
-            je      .exitstate
-
-            cmp     edx, 2
-            je      .exitstate
+            cmp     edx, 0
+            jle     .exitstate
 
             ; Clear screen:
             mov     eax, 0x00ffffff
@@ -616,13 +632,13 @@ saveproc:
 
             ; Render save string:
             mov     eax, name_buffer
-            mov     ebx, 0x00100010
+            mov     ebx, 0x01960150
 
             call    font_renderText
 
             ; Render points string:
             call    sm_queryFoodNum
-            mov     ebx, 0x01000010
+            mov     ebx, 0x02400150
             mov     ecx, 3
 
             call    font_renderNumber
@@ -690,13 +706,13 @@ main:
 
 
         ; Load score table
-        mov     eax, scoredat
+        mov     eax, score_med
         call    sr_loadFromFile
 
 
         ; Enter state selection loop
         ; States:
-        ; 0 - Menu state, 1 - Game state, 2 - Highscore state
+        ; 0 - Menu state, 1 - Game state
         mov     eax, msg_enterStateSelL
         call    io_writestr
         call    io_writeln
@@ -705,7 +721,8 @@ main:
 
 
         ; Set speed (I have to change this later...)
-        mov     esi, 2
+        mov     esi, sp_medium ; Loaded medium score data, so we set medium
+                               ; speed
         mov     [speed], esi
 
         .stateloop:
@@ -714,8 +731,8 @@ main:
             jz      .menustart
             cmp     edx, 1
             je      .gamestart
-            cmp     edx, 2
-            je      .highscore
+            ; cmp     edx, 2
+            ; je      .highscore
             cmp     edx, 3
             je      .savescore
 
@@ -732,10 +749,10 @@ main:
             call    gameproc
             jmp     .stateloop
 
-        .highscore:
-            ; Start highscore state
-            call    scoreproc
-            jmp     .stateloop
+        ; .highscore:
+        ;     ; Start highscore state
+        ;     call    scoreproc
+        ;     jmp     .stateloop
 
         .savescore:
             ; Save new score in highscores table
@@ -781,7 +798,7 @@ main:
 
 section .bss
     ; Menu sprite cache
-    menu_sprites resd 7
+    menu_sprites resd 6
     last_dir resd 1
     speed   resd 1
 
@@ -807,6 +824,8 @@ section .data
     msg_enterHScrState db 'Entering highscore menu state...', 0
     msg_enterSScrState db 'Entering save score screen...', 0
 
+    msg_alloc_error db 'Couldn not allocate memory, or resource missing!', 0
+
     msg_exit db 'Exiting application...', 0
 
     ; Window data
@@ -821,15 +840,19 @@ section .data
     ; Score file
     scoredat db 'score.sav', 0
 
+    ; Score files
+    score_easy db 'score0.sav', 0
+    score_med  db 'score1.sav', 0
+    score_hard db 'score2.sav', 0
+
 
     ; Menu filenames
-    menu_backg db '..\resources\background1.ppm', 0
-    menu_start0 db '..\resources\start0.ppm', 0
-    menu_start1 db '..\resources\start1.ppm', 0
-    menu_highs0 db '..\resources\highs0.ppm', 0
-    menu_highs1 db '..\resources\highs1.ppm', 0
-    menu_exitg0 db '..\resources\exitg0.ppm', 0
-    menu_exitg1 db '..\resources\exitg1.ppm', 0
+    menu_backg  db '..\resources\background1.ppm', 0
+    menu_start  db '..\resources\start.ppm', 0
+    menu_easy   db '..\resources\easy.ppm', 0
+    menu_medium db '..\resources\medium.ppm', 0
+    menu_hard   db '..\resources\hard.ppm', 0
+    menu_exit   db '..\resources\exit.ppm', 0
 
     ; Highscore screen filename
     high_backg db '..\resources\background2.ppm', 0

@@ -202,13 +202,23 @@ sr_renderTable:
         push    esi
 
         ; Render base rectangle
-        mov     eax, 0x00960409
-        mov     ecx, 0x00d50117
+        mov     eax, 0x00000a62
+        mov     ecx, 0x00d90137
         call    render_renderRect
 
         ; Render header
+        ; Align position to highscores string
+        add     ebx, 0x00040004
+        ; Render white rectangle under highscores string
+        mov     eax, 0x00ffffff
+        mov     ecx, 0x00d10018
+        call    render_renderRect
+
+        mov     eax, str_hs
+        call    font_renderText
+
         ; Align position to name string
-        add     ebx, 0x00020002
+        add     ebx, 0x0000001a
         mov     eax, str_name
         call    font_renderText
 
@@ -221,7 +231,7 @@ sr_renderTable:
         call    font_renderText
 
         ; Align position to first list item's place
-        add     edi, 0x0000001a
+        add     edi, 0x0000001c
 
         ; Start from 10th element of save arrays (with the best scores)
         mov     esi, 10
@@ -325,3 +335,4 @@ section .data
     str_name db 'Name      ', 0
     str_points db 'Pts', 0
     str_default db 'default   ', 0
+    str_hs db 'Highscores', 0

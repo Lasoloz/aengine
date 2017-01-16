@@ -29,7 +29,9 @@
 extern sm_initMap
 ; Initializes the game map with the default values (new game, new level, etc.)
 ;
-; No parameters, no return values
+; Parameter:
+; eax - level of game (0, 1, 2 - easy, medium, hard respectively)
+; No return values
 
 
 ;;;

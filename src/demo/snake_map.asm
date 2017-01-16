@@ -33,55 +33,95 @@ section .text
 sm_initMap:
     ; Initializes game map
         push    eax
+        push    ebx
         push    ecx
+        push    edx
 
-        mov     eax, map
+        mov     edx, map
         mov     ecx, map_tilenum
 
     .initloop:
-        mov     byte [eax], m_void
-        inc     eax
+        mov     byte [edx], m_void
+        inc     edx
 
         loop    .initloop
 
-    ; After initialized to 0, put the snake and the first food and some walls
-    ; to their starting positions
-        mov     eax, map
-        add     eax, map_width
-        add     eax, map_width
-        add     eax, 2
-        
-        mov     ecx, 4
 
-    .wall_loop:
-        mov     byte [eax], m_wall
-        inc     eax
-        loop    .wall_loop
+
+        ; Put snake in:
+        mov     edx, map
+        add     edx, map_width
+        add     edx, 2
 
         mov     ecx, 4
-        add     eax, map_width
-        add     eax, map_width
-        sub     eax, 4
 
     .snake_loop:
-        mov     byte [eax], m_sright
-        inc     eax
+        mov     byte [edx], m_sright
+        inc     edx
         loop    .snake_loop
 
-        mov     byte [eax], m_shead
+        mov     byte [edx], m_shead
 
         mov     dword [shead_x], 6
-        mov     dword [shead_y], 4
+        mov     dword [shead_y], 1
         mov     dword [stail_x], 2
-        mov     dword [stail_y], 4
+        mov     dword [stail_y], 1
 
 
+        ; Check if difficulty permits walls
+        cmp     eax, 1
+        jl      .no_wall
+
+        ; Put some wall
+        mov     edx, map
+        add     edx, map_width
+        add     edx, map_width
+        add     edx, 2
+
+        mov     ecx, map_width
+        sub     ecx, 4
+
+    .wall_loop:
+        mov     byte [edx], m_wall
+        inc     edx
+        loop    .wall_loop
+
+
+        add     edx, 4 ; Next line, so it's easier to calculate offset for
+                       ; second line of wall
+
+        ; Put second piece of wall in
+        mov     ebx, map_height
+        sub     ebx, 6
+
+    .countrows:
+        add     edx, map_width
+        dec     ebx
+
+        cmp     ebx, 0
+        jg      .countrows
+
+        mov     ecx, map_width
+        sub     ecx, 4
+
+    .wall_loop2:
+        mov     byte [edx], m_wall
+        inc     edx
+        loop    .wall_loop2
+
+
+    .no_wall:
+
+        ; Create food
         call    create_food
 
+        ; Set points
         mov     dword [points], 0
 
 
+        pop     edx
         pop     ecx
+        pop     ebx
         pop     eax
 
 
