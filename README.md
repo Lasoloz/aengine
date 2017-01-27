@@ -1,7 +1,7 @@
 # ængine
 A game and its engine written in assembly, mainly based on gfx library.
 
-## Why I write this in assembly?
+## Why do I write this in assembly?
 Because it's a project at my University.
 
 ## Why github?
